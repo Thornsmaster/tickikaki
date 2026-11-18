@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tic-Tac-Toe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <section id="login" class="card">
+      <h1>TickiKaki</h1>
+      <p class="muted">Melde dich an, um Tic-Tac-Toe zu spielen.</p>
+      <form id="loginForm">
+        <label for="username">Benutzername</label>
+        <input id="username" required autocomplete="username" placeholder="z. B. Spieler">
+        <label for="password">Passwort</label>
+        <input id="password" type="password" required autocomplete="current-password" placeholder="Passwort">
+        <button type="submit">Einloggen</button>
+      </form>
+      <p id="loginError" class="error"></p>
+    </section>
+
+    <section id="gameApp" class="hidden">
+      <header class="topbar">
+        <div>
+          <h1>TickiKaki</h1>
+          <p id="welcome" class="muted"></p>
+        </div>
+        <button id="logoutBtn" class="secondary">Ausloggen</button>
+      </header>
+
+      <div class="grid">
+        <section class="card game-card">
+          <div class="game-head">
+            <div>
+              <h2>Tic-Tac-Toe</h2>
+              <p id="status" class="status">Du bist X.</p>
+            </div>
+            <button id="restartBtn" class="secondary">Neues Spiel</button>
+          </div>
+          <div id="board" class="board" aria-label="Tic-Tac-Toe Spielfeld"></div>
+          <p id="result" class="result"></p>
+        </section>
+
+        <aside id="adminPanel" class="card admin hidden">
+          <h2>Admin Panel</h2>
+          <p>Admin-Modus ist aktiv.</p>
+          <div class="admin-box">
+            <strong>Admin gewinnt immer</strong>
+            <span>Wenn du als Admin spielst, wird der Sieg des Admins erzwungen.</span>
+          </div>
+          <button id="adminWinBtn">Sieg erzwingen</button>
+          <button id="clearBoardBtn" class="secondary">Spielfeld leeren</button>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
