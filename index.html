@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TickiKaki – Tic-Tac-Toe</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
   <main class="container">
@@ -28,6 +29,44 @@
         <button id="logoutBtn" class="secondary">Ausloggen</button>
       </header>
 
+      <section class="card controls">
+        <h2>Spielmodus</h2>
+        <div class="mode-row">
+          <button id="aiModeBtn">🤖 Gegen KI</button>
+          <button id="friendModeBtn" class="secondary">👥 Mit Freund</button>
+        </div>
+
+        <div id="aiSettings" class="settings">
+          <label for="difficulty">KI-Schwierigkeit</label>
+          <select id="difficulty">
+            <option value="easy">Leicht</option>
+            <option value="medium" selected>Mittel</option>
+            <option value="hard">Schwer – nahezu unschlagbar</option>
+          </select>
+        </div>
+
+        <div id="friendSettings" class="friend-settings hidden">
+          <div>
+            <strong>Online mit einem Freund</strong>
+            <p id="connectionStatus" class="muted">Erstelle ein Spiel oder tritt einem Spiel bei.</p>
+          </div>
+
+          <div class="room-actions">
+            <button id="createRoomBtn">Spiel erstellen</button>
+            <div class="join-row">
+              <input id="roomCodeInput" maxlength="32" placeholder="Raum-Code">
+              <button id="joinRoomBtn" class="secondary">Beitreten</button>
+            </div>
+          </div>
+
+          <div id="roomCodeBox" class="room-code hidden">
+            <span>Dein Raum-Code:</span>
+            <strong id="roomCode"></strong>
+            <button id="copyRoomBtn" class="secondary">Code kopieren</button>
+          </div>
+        </div>
+      </section>
+
       <div class="grid">
         <section class="card game-card">
           <div class="game-head">
@@ -37,6 +76,7 @@
             </div>
             <button id="restartBtn" class="secondary">Neues Spiel</button>
           </div>
+
           <div id="board" class="board" aria-label="Tic-Tac-Toe Spielfeld"></div>
           <p id="result" class="result"></p>
         </section>
@@ -44,16 +84,19 @@
         <aside id="adminPanel" class="card admin hidden">
           <h2>Admin Panel</h2>
           <p>Admin-Modus ist aktiv.</p>
+
           <div class="admin-box">
             <strong>Admin gewinnt immer</strong>
-            <span>Im Admin-Modus wird der Sieg automatisch erzwungen.</span>
+            <span>Im KI-Modus wird dein Sieg automatisch erzwungen.</span>
           </div>
+
           <button id="adminWinBtn">Sieg erzwingen</button>
           <button id="clearBoardBtn" class="secondary">Spielfeld leeren</button>
         </aside>
       </div>
     </section>
   </main>
+
   <script src="script.js"></script>
 </body>
 </html>
