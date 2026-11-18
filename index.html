@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tic-Tac-Toe</title>
+  <title>TickiKaki – Tic-Tac-Toe</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="container">
     <section id="login" class="card">
       <h1>TickiKaki</h1>
-      <p class="muted">Melde dich an, um Tic-Tac-Toe zu spielen.</p>
+      <p class="muted">Gib dein Passwort ein, um zu spielen.</p>
       <form id="loginForm">
-        <label for="username">Benutzername</label>
-        <input id="username" required autocomplete="username" placeholder="z. B. Spieler">
         <label for="password">Passwort</label>
         <input id="password" type="password" required autocomplete="current-password" placeholder="Passwort">
         <button type="submit">Einloggen</button>
@@ -48,7 +46,7 @@
           <p>Admin-Modus ist aktiv.</p>
           <div class="admin-box">
             <strong>Admin gewinnt immer</strong>
-            <span>Wenn du als Admin spielst, wird der Sieg des Admins erzwungen.</span>
+            <span>Im Admin-Modus wird der Sieg automatisch erzwungen.</span>
           </div>
           <button id="adminWinBtn">Sieg erzwingen</button>
           <button id="clearBoardBtn" class="secondary">Spielfeld leeren</button>
