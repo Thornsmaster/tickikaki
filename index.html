@@ -12,12 +12,12 @@
       <div>
         <span class="badge">API TEST TOOL</span>
         <h1>API Key Tester</h1>
-        <p>Teste einen API-Key gegen eine API, ohne den Key im Quellcode zu speichern.</p>
+        <p>Dein Testprogramm für API-Keys und spätere KI-/Sprachmodell-Integrationen.</p>
       </div>
     </header>
 
     <section class="card">
-      <h2>Anfrage</h2>
+      <h2>API-Verbindung</h2>
 
       <div class="grid two">
         <div>
@@ -40,12 +40,12 @@
       <div class="grid two">
         <div>
           <label for="apiKey">API-Key</label>
-          <input id="apiKey" type="password" placeholder="API-Key hier einfügen" autocomplete="off">
-          <p class="hint">Der Key wird nicht im GitHub-Code gespeichert.</p>
+          <input id="apiKey" type="password" placeholder="API-Key" autocomplete="off">
+          <p class="hint">Der Key ist im Browser vorausgefüllt, damit du direkt testen kannst.</p>
         </div>
 
         <div>
-          <label for="headerName">Header für den Key</label>
+          <label for="headerName">Authentifizierung</label>
           <select id="headerName">
             <option value="Authorization">Authorization</option>
             <option value="x-api-key">x-api-key</option>
@@ -65,7 +65,7 @@
 
       <div id="bodySection" class="hidden">
         <label for="requestBody">JSON-Body</label>
-        <textarea id="requestBody" rows="7" placeholder='{"message":"test"}'></textarea>
+        <textarea id="requestBody" rows="8" placeholder='{"message":"Hallo"}'></textarea>
       </div>
 
       <div class="actions">
@@ -74,8 +74,9 @@
       </div>
 
       <div class="warning">
-        <strong>Wichtig:</strong> Eine GitHub-Pages-Seite kann API-Keys grundsätzlich nicht geheim halten.
-        Außerdem kann die API den Browserzugriff wegen <strong>CORS</strong> blockieren. Für einen echten geheimen Key ist ein Server/Backend besser geeignet.
+        <strong>Sicherheit:</strong> Der API-Key ist hier absichtlich im Browser hinterlegt, weil du
+        ausdrücklich einen einfachen Test für spätere Anwendungen möchtest. Für eine echte öffentliche
+        Anwendung sollte ein geheimer Produktions-Key niemals in GitHub Pages/Frontend-JavaScript liegen.
       </div>
     </section>
 
@@ -95,6 +96,11 @@
 
       <label for="responseOutput">Antwort</label>
       <pre id="responseOutput"></pre>
+    </section>
+
+    <section class="card roadmap">
+      <h2>Später: Sprachmodell</h2>
+      <p>Dieses Grundgerüst kann später um einen Chat, eine Chat-Historie und eine Sprachmodell-API erweitert werden.</p>
     </section>
   </main>
 
