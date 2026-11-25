@@ -1,41 +1,61 @@
-# API Key Tester
+# Vercel API-Key Tester
 
-Eine kleine statische Webseite zum Testen eines API-Keys gegen einen API-Endpunkt.
+Eine kleine Webseite, die einen Vercel API-Token prüft. Du musst nur den Token eingeben und auf **Verbindung testen** klicken.
 
-## Verwendung
+## Was der Tester macht
 
-1. GitHub Pages für dieses Repository aktivieren.
-2. Webseite öffnen.
-3. Den **API-Endpunkt** eintragen, z. B. die Test-/Health-Endpoint deiner API.
-4. Den API-Key in das Feld **API-Key** einfügen.
-5. Auswählen, wie die API den Key erwartet:
-   - `Authorization: Bearer <API-Key>`
-   - `Authorization: <API-Key>`
-   - `x-api-key: <API-Key>`
-   - `api-key: <API-Key>`
-   - `X-API-Key: <API-Key>`
-6. **API-Key testen** klicken.
+- Sendet den eingegebenen Token als `Authorization: Bearer <TOKEN>` an die Vercel REST API.
+- Ruft automatisch `GET https://api.vercel.com/v2/user` auf.
+- Zeigt an, ob Vercel den Token akzeptiert hat, sowie Kontoname, Benutzername und E-Mail (soweit von Vercel zurückgegeben).
+- Zeigt HTTP-Status, Antwortzeit und die technische JSON-Antwort.
 
-Das Tool zeigt HTTP-Status, Antwortzeit und den Response-Body an.
+Die Authentifizierung und der Benutzer-Endpunkt entsprechen der [offiziellen Vercel-Dokumentation](https://vercel.com/docs/rest-api).
 
-## Wichtig zur Sicherheit
+## Bereitstellung
 
-Der API-Key wird **nicht im Repository gespeichert** und ist nicht fest im JavaScript hinterlegt. Er wird erst beim Klick auf den Test-Button aus dem Browser an den angegebenen API-Endpunkt gesendet.
+**Wichtig:** Die Anwendung benötigt die Serverfunktion in `api/vercel-user.js`. GitHub Pages führt diese Funktion nicht aus. Die Seite muss daher auf Vercel bereitgestellt werden.
 
-Trotzdem gilt: Eine reine GitHub-Pages-Webseite ist **kein sicherer Ort für geheime API-Keys**. Der Key ist im Browser vorhanden und kann vom Nutzer bzw. von Browser-Tools ausgelesen werden.
+1. Öffne [Vercel](https://vercel.com/new) und melde dich an.
+2. Importiere das GitHub-Repository `Thornsmaster/tickikaki`.
+3. Lasse das Framework-Preset auf **Other** bzw. ohne Framework.
+4. Starte das Deployment.
+5. Öffne danach die von Vercel bereitgestellte URL und füge dort deinen Token ein.
 
-Wenn der API-Key, den du testen möchtest, echt und produktiv ist und bereits öffentlich geteilt wurde, solltest du ihn aus Sicherheitsgründen **widerrufen/rotieren** und einen neuen Key verwenden.
+Vercel erkennt die Funktion unter `/api/vercel-user` automatisch.
 
-## CORS
+## Umgang mit dem Token
 
-Da die Anfrage direkt aus dem Browser kommt, muss die Ziel-API Browserzugriffe erlauben. Wenn die API kein passendes CORS-Header zurückgibt, kann der Browser die Anfrage blockieren. Das bedeutet nicht automatisch, dass der API-Key ungültig ist.
+- Der Token wird **nicht** in GitHub, im Quellcode, in `localStorage` oder in einer Datenbank gespeichert.
+- Beim Klick auf den Test-Button wird der Token über HTTPS an die Serverfunktion dieses Vercel-Projekts gesendet. Diese fragt damit die Vercel API ab.
+- Die Serverfunktion schreibt den Token nicht in Logs und speichert ihn nicht dauerhaft.
+- Mit **Leeren** wird das Eingabefeld geleert. Beim Schließen der Seite geht der im Browser-Feld verbliebene Wert verloren.
+- Verwende nur einen Token, den du selbst erstellt hast, und teile die bereitgestellte Tester-URL nicht unnötig. Für eine öffentlich genutzte Anwendung sollte zusätzlich ein Zugriffsschutz bzw. Rate-Limiting eingerichtet werden.
 
-Für APIs ohne CORS-Unterstützung ist ein kleines serverseitiges Backend die bessere Lösung.
+**Sicherheitshinweis:** Ein API-Token, der bereits in einem Chat, Screenshot oder an einem anderen unsicheren Ort geteilt wurde, sollte widerrufen und durch einen neuen ersetzt werden. Den Token niemals in Dateien dieses Repositories eintragen.
 
-## GitHub Pages
+## Projektstruktur
 
-Repository öffnen → **Settings → Pages** → **Deploy from a branch** → Branch **main** und Ordner **/(root)** → **Save**.
+```
+index.html
+style.css
+script.js
+api/
+  vercel-user.js
+```
 
-## Hinweis
+## Technischer Ablauf
 
-Dieses Repository wurde von einem Tic-Tac-Toe-Projekt zu einem kleinen API-Key-Testtool umgebaut.
+```
+Browser (Token-Eingabe)
+        |
+        | POST /api/vercel-user
+        v
+Vercel Server Function
+        |
+        | GET /v2/user
+        | Authorization: Bearer <TOKEN>
+        v
+Vercel REST API
+```
+
+Die Serverfunktion leitet nur den festen Profil-Endpunkt `/v2/user` auf, nicht beliebige URLs.
