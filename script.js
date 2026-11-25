@@ -1,104 +1,47 @@
-const endpointEl = document.getElementById("endpoint");
-const methodEl = document.getElementById("method");
+const form = document.getElementById("testForm");
 const apiKeyEl = document.getElementById("apiKey");
-const headerNameEl = document.getElementById("headerName");
-const authPrefixEl = document.getElementById("authPrefix");
-const authorizationFormatEl = document.getElementById("authorizationFormat");
-const bodySectionEl = document.getElementById("bodySection");
-const requestBodyEl = document.getElementById("requestBody");
 const testBtn = document.getElementById("testBtn");
 const clearBtn = document.getElementById("clearBtn");
+const toggleTokenBtn = document.getElementById("toggleTokenBtn");
 
 const resultCard = document.getElementById("resultCard");
+const resultTitle = document.getElementById("resultTitle");
 const resultSummary = document.getElementById("resultSummary");
 const statusBadge = document.getElementById("statusBadge");
 const httpStatus = document.getElementById("httpStatus");
 const duration = document.getElementById("duration");
+const accountPanel = document.getElementById("accountPanel");
+const accountName = document.getElementById("accountName");
+const accountDetails = document.getElementById("accountDetails");
 const responseOutput = document.getElementById("responseOutput");
 
-methodEl.addEventListener("change", updateMethodUI);
-headerNameEl.addEventListener("change", updateHeaderUI);
-testBtn.addEventListener("click", testApi);
+form.addEventListener("submit", testVercelToken);
 clearBtn.addEventListener("click", clearForm);
+toggleTokenBtn.addEventListener("click", toggleTokenVisibility);
 
-updateMethodUI();
-updateHeaderUI();
+async function testVercelToken(event) {
+  event.preventDefault();
 
-function updateMethodUI() {
-  bodySectionEl.classList.toggle("hidden", !["POST", "PUT", "PATCH"].includes(methodEl.value));
-}
-
-function updateHeaderUI() {
-  const isAuthorization = headerNameEl.value.toLowerCase() === "authorization";
-  authorizationFormatEl.classList.toggle("hidden", !isAuthorization);
-}
-
-function clearForm() {
-  endpointEl.value = "";
-  apiKeyEl.value = "";
-  requestBodyEl.value = "";
-  resultCard.classList.add("hidden");
-  responseOutput.textContent = "";
-}
-
-async function testApi() {
-  const endpoint = endpointEl.value.trim();
-  const apiKey = apiKeyEl.value.trim();
-  const method = methodEl.value;
-  const headerName = headerNameEl.value;
-
-  if (!endpoint) {
-    showError("Bitte einen API-Endpunkt eingeben.");
+  const token = apiKeyEl.value.trim();
+  if (!token) {
+    showResult({
+      title: "Token fehlt",
+      summary: "Bitte füge zuerst deinen Vercel API-Token ein.",
+      status: "FEHLER",
+      kind: "error",
+      http: "–",
+      time: "–"
+    });
     return;
-  }
-
-  if (!apiKey) {
-    showError("Bitte einen API-Key eingeben.");
-    return;
-  }
-
-  try {
-    new URL(endpoint);
-  } catch {
-    showError("Der API-Endpunkt ist keine gültige URL.");
-    return;
-  }
-
-  let body = undefined;
-
-  if (["POST", "PUT", "PATCH"].includes(method)) {
-    const rawBody = requestBodyEl.value.trim();
-
-    if (rawBody) {
-      try {
-        JSON.parse(rawBody);
-      } catch {
-        showError("Der JSON-Body ist ungültig.");
-        return;
-      }
-      body = rawBody;
-    }
-  }
-
-  const headers = {};
-
-  if (headerName.toLowerCase() === "authorization") {
-    headers[headerName] = authPrefixEl.value === "Bearer"
-      ? `Bearer ${apiKey}`
-      : apiKey;
-  } else {
-    headers[headerName] = apiKey;
-  }
-
-  if (body) {
-    headers["Content-Type"] = "application/json";
   }
 
   setLoading(true);
   resultCard.classList.remove("hidden");
+  accountPanel.classList.add("hidden");
+  resultTitle.textContent = "Verbindung wird geprüft";
+  resultSummary.textContent = "Der Tester fragt dein Vercel-Konto ab …";
   statusBadge.className = "status loading";
   statusBadge.textContent = "TESTE";
-  resultSummary.textContent = "Anfrage wird gesendet …";
   httpStatus.textContent = "–";
   duration.textContent = "–";
   responseOutput.textContent = "";
@@ -106,68 +49,146 @@ async function testApi() {
   const started = performance.now();
 
   try {
-    const response = await fetch(endpoint, {
-      method,
-      headers,
-      body
+    const response = await fetch("/api/vercel-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({ token })
     });
 
     const elapsed = Math.round(performance.now() - started);
-    const text = await response.text();
+    const contentType = response.headers.get("content-type") || "";
+    let data;
 
-    httpStatus.textContent = `${response.status} ${response.statusText}`;
-    duration.textContent = `${elapsed} ms`;
-    responseOutput.textContent = formatResponse(text);
-
-    if (response.ok) {
-      statusBadge.className = "status success";
-      statusBadge.textContent = "AKZEPTIERT";
-      resultSummary.textContent = "Die API hat eine erfolgreiche HTTP-Antwort zurückgegeben.";
+    if (contentType.includes("application/json")) {
+      data = await response.json();
     } else {
-      statusBadge.className = "status error";
-      statusBadge.textContent = "ABGELEHNT";
-      resultSummary.textContent = "Die API hat den Request mit einem Fehlerstatus beantwortet.";
+      const rawText = await response.text();
+      data = rawText ? { message: rawText.slice(0, 1500) } : {};
     }
-  } catch (error) {
+
+    httpStatus.textContent = String(response.status);
+    duration.textContent = elapsed + " ms";
+    responseOutput.textContent = formatResponse(data);
+
+    if (response.status === 404 && !contentType.includes("application/json")) {
+      showFailure(
+        "Backend nicht gefunden",
+        "Diese Version muss über Vercel bereitgestellt sein. GitHub Pages kann die benötigte Serverfunktion nicht ausführen.",
+        response.status,
+        elapsed
+      );
+      return;
+    }
+
+    if (!response.ok) {
+      let message = "Vercel hat die Anfrage abgelehnt.";
+
+      if (response.status === 401) {
+        message = "Der Token ist ungültig, abgelaufen oder wurde widerrufen.";
+      } else if (response.status === 403) {
+        message = "Der Token ist gültig, hat aber nicht die nötigen Berechtigungen für diese Anfrage.";
+      } else if (response.status === 429) {
+        message = "Zu viele Anfragen. Bitte warte kurz und versuche es erneut.";
+      } else if (response.status >= 500) {
+        message = "Bei Vercel ist ein Serverfehler aufgetreten. Versuche es später erneut.";
+      } else if (data && (data.error || data.message)) {
+        message = String(data.error || data.message);
+      }
+
+      showFailure("Verbindung fehlgeschlagen", message, response.status, elapsed);
+      return;
+    }
+
+    const user = data && data.user;
+    if (!user) {
+      showFailure(
+        "Unerwartete Antwort",
+        "Die Anfrage war erfolgreich, aber die erwarteten Kontodaten wurden nicht gefunden.",
+        response.status,
+        elapsed
+      );
+      return;
+    }
+
+    const displayName = user.name || user.username || "Vercel-Nutzer";
+    const details = [user.username, user.email].filter(Boolean).join(" · ");
+
+    accountName.textContent = displayName;
+    accountDetails.textContent = details || "Vercel-Konto erfolgreich erreicht";
+    accountPanel.classList.remove("hidden");
+
+    showResult({
+      title: "Verbindung erfolgreich",
+      summary: "Dein API-Token wurde von Vercel akzeptiert.",
+      status: "VERBUNDEN",
+      kind: "success",
+      http: response.status,
+      time: elapsed + " ms"
+    });
+  } catch {
     const elapsed = Math.round(performance.now() - started);
-    httpStatus.textContent = "Keine Antwort";
-    duration.textContent = `${elapsed} ms`;
-    statusBadge.className = "status error";
-    statusBadge.textContent = "FEHLER";
-
-    if (error instanceof TypeError) {
-      resultSummary.textContent = "Die Anfrage konnte nicht aus dem Browser gesendet werden. Häufige Ursache: CORS oder eine nicht erreichbare URL.";
-      responseOutput.textContent = error.message || "Network error";
-    } else {
-      resultSummary.textContent = "Beim Testen ist ein Fehler aufgetreten.";
-      responseOutput.textContent = String(error);
-    }
+    showFailure(
+      "Anfrage fehlgeschlagen",
+      "Der Tester konnte das Backend nicht erreichen. Prüfe, ob die Website über Vercel geöffnet wurde und versuche es erneut.",
+      "Keine Antwort",
+      elapsed
+    );
+    responseOutput.textContent = "Backend nicht erreichbar.";
   } finally {
     setLoading(false);
   }
 }
 
-function formatResponse(text) {
-  if (!text) return "(Leere Antwort)";
-
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2);
-  } catch {
-    return text;
-  }
+function showFailure(title, summary, http, elapsed) {
+  showResult({
+    title,
+    summary,
+    status: "FEHLER",
+    kind: "error",
+    http,
+    time: elapsed + " ms"
+  });
 }
 
-function showError(message) {
+function showResult({ title, summary, status, kind, http, time }) {
   resultCard.classList.remove("hidden");
-  statusBadge.className = "status error";
-  statusBadge.textContent = "FEHLER";
-  resultSummary.textContent = message;
-  httpStatus.textContent = "–";
-  duration.textContent = "–";
-  responseOutput.textContent = "";
+  resultTitle.textContent = title;
+  resultSummary.textContent = summary;
+  statusBadge.className = "status " + kind;
+  statusBadge.textContent = status;
+  httpStatus.textContent = String(http);
+  duration.textContent = time;
+}
+
+function formatResponse(data) {
+  return JSON.stringify(data, null, 2);
 }
 
 function setLoading(loading) {
   testBtn.disabled = loading;
-  testBtn.textContent = loading ? "Teste …" : "API-Key testen";
+  testBtn.textContent = loading ? "Prüfe Verbindung …" : "Verbindung testen";
+}
+
+function clearForm() {
+  apiKeyEl.value = "";
+  apiKeyEl.type = "password";
+  toggleTokenBtn.textContent = "Anzeigen";
+  toggleTokenBtn.setAttribute("aria-label", "Token anzeigen");
+  resultCard.classList.add("hidden");
+  accountPanel.classList.add("hidden");
+  responseOutput.textContent = "";
+  apiKeyEl.focus();
+}
+
+function toggleTokenVisibility() {
+  const visible = apiKeyEl.type === "password";
+  apiKeyEl.type = visible ? "text" : "password";
+  toggleTokenBtn.textContent = visible ? "Verbergen" : "Anzeigen";
+  toggleTokenBtn.setAttribute(
+    "aria-label",
+    visible ? "Token verbergen" : "Token anzeigen"
+  );
 }
