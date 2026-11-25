@@ -21,7 +21,7 @@ Die Authentifizierung und der Benutzer-Endpunkt entsprechen der [offiziellen Ver
 4. Starte das Deployment.
 5. Öffne danach die von Vercel bereitgestellte URL und füge dort deinen Token ein.
 
-Vercel erkennt die Funktion unter `/api/vercel-user` automatisch.
+Vercel stellt Dateien im Ordner `api` als serverseitige Funktionen bereit. Dafür ist keine weitere Abhängigkeit erforderlich.
 
 ## Umgang mit dem Token
 
@@ -39,6 +39,7 @@ Vercel erkennt die Funktion unter `/api/vercel-user` automatisch.
 index.html
 style.css
 script.js
+package.json
 api/
   vercel-user.js
 ```
