@@ -3,105 +3,85 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>API Key Tester</title>
+  <meta name="theme-color" content="#101827">
+  <title>Vercel API-Key Tester</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="container">
     <header class="hero">
-      <div>
-        <span class="badge">API TEST TOOL</span>
-        <h1>API Key Tester</h1>
-        <p>Dein Testprogramm für API-Keys und spätere KI-/Sprachmodell-Integrationen.</p>
-      </div>
+      <span class="eyebrow">API CONNECTION CHECK</span>
+      <h1>Vercel API-Key Tester</h1>
+      <p>Token eingeben, auf „Verbindung testen“ klicken – der Tester prüft automatisch dein Vercel-Konto.</p>
     </header>
 
     <section class="card">
-      <h2>API-Verbindung</h2>
-
-      <div class="grid two">
-        <div>
-          <label for="endpoint">API-Endpunkt</label>
-          <input id="endpoint" type="url" placeholder="https://api.example.com/v1/test" autocomplete="url">
+      <form id="testForm">
+        <label for="apiKey">Dein Vercel API-Token</label>
+        <div class="token-row">
+          <input
+            id="apiKey"
+            name="apiKey"
+            type="password"
+            placeholder="Vercel-Token hier einfügen"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+          >
+          <button id="toggleTokenBtn" class="button secondary toggle" type="button" aria-label="Token anzeigen">Anzeigen</button>
         </div>
+        <p class="hint">Der Token wird nicht gespeichert. Er wird nur beim Test über das Backend an die Vercel-API gesendet.</p>
 
-        <div>
-          <label for="method">HTTP-Methode</label>
-          <select id="method">
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="PATCH">PATCH</option>
-            <option value="DELETE">DELETE</option>
-          </select>
+        <div class="actions">
+          <button id="testBtn" class="button primary" type="submit">Verbindung testen</button>
+          <button id="clearBtn" class="button secondary" type="button">Leeren</button>
         </div>
-      </div>
+      </form>
 
-      <div class="grid two">
-        <div>
-          <label for="apiKey">API-Key</label>
-          <input id="apiKey" type="password" placeholder="API-Key" autocomplete="off">
-          <p class="hint">Der Key ist im Browser vorausgefüllt, damit du direkt testen kannst.</p>
-        </div>
-
-        <div>
-          <label for="headerName">Authentifizierung</label>
-          <select id="headerName">
-            <option value="Authorization">Authorization</option>
-            <option value="x-api-key">x-api-key</option>
-            <option value="api-key">api-key</option>
-            <option value="X-API-Key">X-API-Key</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="authorizationFormat">
-        <label for="authPrefix">Authorization-Format</label>
-        <select id="authPrefix">
-          <option value="Bearer">Bearer &lt;API-Key&gt;</option>
-          <option value="raw">Nur den API-Key senden</option>
-        </select>
-      </div>
-
-      <div id="bodySection" class="hidden">
-        <label for="requestBody">JSON-Body</label>
-        <textarea id="requestBody" rows="8" placeholder='{"message":"Hallo"}'></textarea>
-      </div>
-
-      <div class="actions">
-        <button id="testBtn">API-Key testen</button>
-        <button id="clearBtn" class="secondary">Leeren</button>
-      </div>
-
-      <div class="warning">
-        <strong>Sicherheit:</strong> Der API-Key ist hier absichtlich im Browser hinterlegt, weil du
-        ausdrücklich einen einfachen Test für spätere Anwendungen möchtest. Für eine echte öffentliche
-        Anwendung sollte ein geheimer Produktions-Key niemals in GitHub Pages/Frontend-JavaScript liegen.
+      <div class="security-note">
+        <strong>Hinweis:</strong> Verwende möglichst einen Token mit den geringsten nötigen Berechtigungen.
+        Teile ihn nicht und füge ihn niemals in den GitHub-Code ein.
       </div>
     </section>
 
-    <section id="resultCard" class="card hidden">
-      <div class="resultHeader">
+    <section id="resultCard" class="card result-card hidden" aria-live="polite">
+      <div class="result-heading">
         <div>
-          <h2>Ergebnis</h2>
+          <span class="eyebrow">ERGEBNIS</span>
+          <h2 id="resultTitle">Verbindungsstatus</h2>
           <p id="resultSummary" class="muted"></p>
         </div>
         <span id="statusBadge" class="status">–</span>
       </div>
 
       <div class="stats">
-        <div><span>HTTP-Status</span><strong id="httpStatus">–</strong></div>
-        <div><span>Dauer</span><strong id="duration">–</strong></div>
+        <div class="stat">
+          <span>HTTP-Status</span>
+          <strong id="httpStatus">–</strong>
+        </div>
+        <div class="stat">
+          <span>Antwortzeit</span>
+          <strong id="duration">–</strong>
+        </div>
       </div>
 
-      <label for="responseOutput">Antwort</label>
-      <pre id="responseOutput"></pre>
+      <div id="accountPanel" class="account hidden">
+        <span class="account-label">VERBUNDENES VERCEL-KONTO</span>
+        <strong id="accountName"></strong>
+        <span id="accountDetails" class="muted"></span>
+      </div>
+
+      <details class="response-details">
+        <summary>Technische Antwort anzeigen</summary>
+        <pre id="responseOutput"></pre>
+      </details>
     </section>
 
-    <section class="card roadmap">
-      <h2>Später: Sprachmodell</h2>
-      <p>Dieses Grundgerüst kann später um einen Chat, eine Chat-Historie und eine Sprachmodell-API erweitert werden.</p>
-    </section>
+    <footer>
+      <p>Der Tester fragt den Vercel-Endpunkt <code>GET /v2/user</code> ab.</p>
+      <p>Für die API-Funktion muss dieses Repository über Vercel bereitgestellt sein. GitHub Pages unterstützt die Serverfunktion nicht.</p>
+    </footer>
   </main>
 
   <script src="script.js"></script>
